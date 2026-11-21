@@ -1,0 +1,1219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Filament Stock — Yanick's 3D Lab</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: #f8fafc;
+      color: #0f172a;
+    }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
+</head>
+<body class="min-h-screen pb-16">
+  <!-- Top Bar -->
+  <header class="sticky top-0 z-30 bg-white/90 backdrop-blur border-b border-slate-200">
+    <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
+      <div class="flex items-center gap-2.5 min-w-0">
+        <div class="w-9 h-9 rounded-xl bg-slate-900 text-white flex items-center justify-center shrink-0">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="9" />
+            <circle cx="12" cy="12" r="3" />
+            <path d="M12 3v3M12 18v3M3 12h3M18 12h3" />
+          </svg>
+        </div>
+        <div class="min-w-0">
+          <h1 class="text-base sm:text-lg font-bold tracking-tight text-slate-900 truncate">Filament Stock</h1>
+          <p class="text-xs text-slate-500 truncate">FlashForge Creator 5 Pro • 4 Toolheads</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+        <span id="syncBadge" class="hidden sm:inline-flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-600">Local</span>
+        <button id="refreshSyncBtn" type="button" title="Refresh from Google Sheets" class="hidden p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
+        </button>
+        <button id="openSyncBtn" type="button" title="Google Sheets Sync Settings" class="p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+        <button id="copyStockBtn" type="button" title="Copy stock &amp; reorder summary for chat" class="px-2.5 py-2 text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition">
+          Copy Summary
+        </button>
+        <button id="exportBtn" type="button" title="Export JSON" class="px-2.5 py-2 text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition">
+          Export
+        </button>
+        <button id="topJsonSyncBtn" type="button" title="Force Sync All OrcaSlicer 2.5 JSONs to Drive" class="px-2.5 py-2 text-xs font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-xl transition">
+          JSON Sync
+        </button>
+        <button id="openAddBtn" type="button" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs sm:text-sm font-semibold shadow-sm transition">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <path d="M12 5v14M5 12h14" />
+          </svg>
+          Add Spool
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-5xl mx-auto px-4 pt-4 space-y-4">
+    <!-- Sample Data Notice (dismissible / clearable) -->
+    <div id="sampleBanner" class="hidden rounded-2xl bg-amber-50 border border-amber-200 px-4 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+      <div class="text-xs sm:text-sm text-amber-900">
+        <span class="font-semibold">Starter preview loaded.</span> Upload photos of your spools in chat to replace these with your real inventory, or clear them to start fresh.
+      </div>
+      <div class="flex items-center gap-2 shrink-0">
+        <button id="clearSampleBtn" type="button" class="px-3 py-1.5 rounded-lg bg-amber-900/10 hover:bg-amber-900/20 text-amber-950 text-xs font-semibold transition">
+          Clear Samples
+        </button>
+      </div>
+    </div>
+
+    <!-- KPI Strip -->
+    <section class="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
+      <button type="button" data-kpi-filter="active" class="kpi-card text-left bg-white rounded-2xl p-3.5 border border-slate-200 hover:border-slate-300 transition">
+        <div class="text-xs font-medium text-slate-500">In Stock</div>
+        <div id="statInStock" class="text-2xl font-bold text-slate-900 mt-0.5">0</div>
+      </button>
+      <button type="button" data-kpi-filter="ordered" class="kpi-card text-left bg-white rounded-2xl p-3.5 border border-slate-200 hover:border-sky-300 transition">
+        <div class="text-xs font-medium text-sky-600">On Order</div>
+        <div id="statOrdered" class="text-2xl font-bold text-sky-600 mt-0.5">0</div>
+      </button>
+      <button type="button" data-kpi-filter="low" class="kpi-card text-left bg-white rounded-2xl p-3.5 border border-slate-200 hover:border-amber-300 transition">
+        <div class="text-xs font-medium text-amber-600">Running Low</div>
+        <div id="statLow" class="text-2xl font-bold text-amber-600 mt-0.5">0</div>
+      </button>
+      <button type="button" data-kpi-filter="empty" class="kpi-card text-left bg-white rounded-2xl p-3.5 border border-slate-200 hover:border-rose-300 transition">
+        <div class="text-xs font-medium text-rose-600">Reorder</div>
+        <div id="statEmpty" class="text-2xl font-bold text-rose-600 mt-0.5">0</div>
+      </button>
+      <div class="col-span-2 sm:col-span-1 bg-white rounded-2xl p-3.5 border border-slate-200">
+        <div class="text-xs font-medium text-slate-500">Materials</div>
+        <div id="statMaterials" class="text-2xl font-bold text-slate-900 mt-0.5">0</div>
+      </div>
+    </section>
+
+    <!-- Search & Filters -->
+    <section class="bg-white rounded-2xl p-3.5 border border-slate-200 space-y-3">
+      <div class="flex flex-col sm:flex-row gap-2.5">
+        <div class="relative flex-1">
+          <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8" />
+            <path d="m21 21-4.3-4.3" />
+          </svg>
+          <input id="searchInput" type="text" placeholder="Search color, brand, material (e.g. black PETG, TPU)..." class="w-full pl-9 pr-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900/15 focus:border-slate-400" />
+        </div>
+        <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-xl shrink-0 overflow-x-auto no-scrollbar">
+          <button type="button" data-status="active" class="status-tab px-2.5 py-1.5 rounded-lg text-xs font-semibold transition bg-white text-slate-900 shadow-sm">In Stock</button>
+          <button type="button" data-status="ordered" class="status-tab px-2.5 py-1.5 rounded-lg text-xs font-semibold transition text-slate-600 hover:text-slate-900">On Order</button>
+          <button type="button" data-status="low" class="status-tab px-2.5 py-1.5 rounded-lg text-xs font-semibold transition text-slate-600 hover:text-slate-900">Low</button>
+          <button type="button" data-status="empty" class="status-tab px-2.5 py-1.5 rounded-lg text-xs font-semibold transition text-slate-600 hover:text-slate-900">Reorder</button>
+          <button type="button" data-status="all" class="status-tab px-2.5 py-1.5 rounded-lg text-xs font-semibold transition text-slate-600 hover:text-slate-900">All</button>
+        </div>
+      </div>
+
+      <!-- Material Filter Pills -->
+      <div id="materialFilters" class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-0.5"></div>
+
+      <!-- Use-Case / Project Fit Pills -->
+      <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pt-1 border-t border-slate-100">
+        <span class="text-[11px] font-semibold text-slate-400 shrink-0 mr-1">Job fit:</span>
+        <div id="useCaseFilters" class="flex items-center gap-1.5"></div>
+      </div>
+
+      <!-- Live Project / Search Match Banner -->
+      <div id="matchBanner" class="hidden rounded-xl px-3 py-2 text-xs font-medium flex items-center justify-between gap-2"></div>
+    </section>
+
+    <!-- Filament Grid -->
+    <section id="filamentGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"></section>
+
+    <!-- Empty State -->
+    <div id="emptyState" class="hidden bg-white rounded-2xl border border-dashed border-slate-300 p-8 text-center">
+      <p class="text-sm font-semibold text-slate-700">No filaments match this filter</p>
+      <p class="text-xs text-slate-500 mt-1">Try clearing your search or tap "Add Spool" to log a new roll.</p>
+      <button id="resetFiltersBtn" type="button" class="mt-3 px-3.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-xs font-semibold text-slate-700 transition">
+        Reset Filters
+      </button>
+    </div>
+  </main>
+
+  <!-- Add / Edit Spool Modal -->
+  <div id="spoolModal" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-2xl shadow-xl border border-slate-200 p-5 space-y-4">
+      <div class="flex items-center justify-between">
+        <h2 id="modalTitle" class="text-base font-bold text-slate-900">Add Filament Spool</h2>
+        <button id="closeModalBtn" type="button" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 6 6 18M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <form id="spoolForm" class="space-y-3">
+        <input type="hidden" id="editId" />
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Material</label>
+            <select id="fMaterial" required class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900/15">
+              <option value="PLA">PLA</option>
+              <option value="Hyper PLA">Hyper PLA</option>
+              <option value="PLA+">PLA+</option>
+              <option value="PETG">PETG</option>
+              <option value="High Speed PETG">High Speed PETG</option>
+              <option value="PETG-CF">PETG-CF</option>
+              <option value="TPU">TPU</option>
+              <option value="ABS">ABS</option>
+              <option value="ASA">ASA</option>
+              <option value="PA / Nylon">PA / Nylon</option>
+              <option value="HIPS">HIPS (Support)</option>
+              <option value="PVA">PVA (Support)</option>
+              <option value="PC+">PC+</option>
+              <option value="PC">PC</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Brand</label>
+            <input id="fBrand" type="text" required placeholder="e.g. Sunlu, Creality" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900/15" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-3">
+          <div class="col-span-2">
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Color Name</label>
+            <input id="fColor" type="text" required placeholder="e.g. Matte Black, Signal Blue" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900/15" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Swatch</label>
+            <input id="fHex" type="color" value="#1e293b" class="w-full h-[38px] p-1 rounded-xl border border-slate-200 bg-slate-50 cursor-pointer" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Status</label>
+            <select id="fStatus" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900/15">
+              <option value="in_stock">In Stock</option>
+              <option value="ordered">On Order (Not Received)</option>
+              <option value="low">Running Low</option>
+              <option value="empty">Finished / Reorder</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Toolhead / Note</label>
+            <input id="fNote" type="text" placeholder="e.g. T1/T2, 95A" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900/15" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Humidity / Moisture</label>
+            <input id="fHumidity" type="text" placeholder="e.g. <20% RH (Drybox)" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900/15" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Moisture Warning</label>
+            <select id="fMoisture" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900/15">
+              <option value="low">Low (Standard)</option>
+              <option value="moderate">Moderate (Keep Dry)</option>
+              <option value="critical">Critical (Dry Before Print)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Drying Info</label>
+            <input id="fDrying" type="text" placeholder="e.g. 60°C / 6h" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900/15" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Print Temps</label>
+            <input id="fTemps" type="text" placeholder="e.g. 240-260°C / 70°C" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900/15" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Max Flow (mm³/s)</label>
+            <input id="fMaxFlow" type="text" placeholder="e.g. 12 or 20" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900/15" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Fan % (Min/Max)</label>
+            <input id="fFanSpeed" type="text" placeholder="e.g. 20/50 or 50/100" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900/15" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Printer / Toolhead</label>
+            <input id="fPrinter" type="text" placeholder="e.g. C5P T1" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900/15" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Swatch URL</label>
+            <input id="fSwatchUrl" type="url" placeholder="https://3dfilamentprofiles.com/..." class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900/15" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Particularities / Tips</label>
+          <input id="fTips" type="text" placeholder="e.g. Hardened nozzle required, cardboard spool" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900/15" />
+        </div>
+
+        <div class="pt-2 flex items-center justify-end gap-2">
+          <button id="deleteSpoolBtn" type="button" class="hidden mr-auto px-3 py-2 rounded-xl text-xs font-semibold text-rose-600 hover:bg-rose-50 transition">
+            Delete
+          </button>
+          <button id="cancelModalBtn" type="button" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition">
+            Cancel
+          </button>
+          <button type="submit" class="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold transition">
+            Save Spool
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Spool Info Bubble / Modal -->
+  <div id="infoModal" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-2xl shadow-xl border border-slate-200 p-5 space-y-4">
+      <div class="flex items-start justify-between gap-3">
+        <div class="flex items-center gap-3 min-w-0">
+          <div id="infoSwatch" class="w-10 h-10 rounded-xl shrink-0 border border-black/10 flex items-center justify-center shadow-inner">
+            <div class="w-3 h-3 rounded-full bg-white/85 border border-black/10"></div>
+          </div>
+          <div class="min-w-0">
+            <div class="flex items-center gap-1.5">
+              <span id="infoMaterial" class="px-2 py-0.5 rounded-md bg-slate-100 text-slate-800 text-[11px] font-bold"></span>
+              <span id="infoDate" class="text-[11px] text-slate-400"></span>
+            </div>
+            <h2 id="infoTitle" class="text-base font-bold text-slate-900 mt-0.5 truncate"></h2>
+            <p id="infoBrand" class="text-xs text-slate-500 truncate"></p>
+          </div>
+        </div>
+        <div class="flex items-center gap-1 shrink-0">
+          <button id="infoSwatchBtn" type="button" title="Missing online — Click to add this filament swatch" class="p-1.5 rounded-lg text-amber-600 hover:bg-amber-50 transition">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/>
+              <circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/>
+              <circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/>
+              <circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/>
+              <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/>
+            </svg>
+          </button>
+          <button id="closeInfoBtn" type="button" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 6 6 18M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="space-y-2.5 text-xs">
+        <div class="grid grid-cols-2 gap-2.5">
+          <div class="rounded-xl bg-slate-50 border border-slate-200/80 p-3">
+            <div class="font-semibold text-slate-500 uppercase tracking-wider text-[10px]">Humidity Target</div>
+            <div id="infoHumidity" class="text-slate-800 font-medium mt-0.5"></div>
+          </div>
+          <div class="rounded-xl bg-slate-50 border border-slate-200/80 p-3">
+            <div class="font-semibold text-slate-500 uppercase tracking-wider text-[10px]">Drying Settings</div>
+            <div id="infoDrying" class="text-slate-800 font-medium mt-0.5"></div>
+          </div>
+        </div>
+        <div class="rounded-xl bg-slate-50 border border-slate-200/80 p-3">
+          <div class="font-semibold text-slate-500 uppercase tracking-wider text-[10px]">Print Temperatures</div>
+          <div id="infoTemps" class="text-slate-800 font-medium mt-0.5"></div>
+        </div>
+        <div class="grid grid-cols-2 gap-2.5">
+          <div class="rounded-xl bg-slate-50 border border-slate-200/80 p-3">
+            <div class="font-semibold text-slate-500 uppercase tracking-wider text-[10px]">Max Flow / Fan %</div>
+            <div id="infoFlowFan" class="text-slate-800 font-medium mt-0.5"></div>
+          </div>
+          <div class="rounded-xl bg-slate-50 border border-slate-200/80 p-3">
+            <div class="font-semibold text-slate-500 uppercase tracking-wider text-[10px]">OrcaSlicer 2.5 JSON</div>
+            <div id="infoOrcaWrap" class="text-slate-800 font-medium mt-0.5 truncate"></div>
+          </div>
+        </div>
+        <div class="rounded-xl bg-amber-50/70 border border-amber-200/80 p-3">
+          <div class="font-semibold text-amber-800 uppercase tracking-wider text-[10px]">Particularities &amp; Tips</div>
+          <div id="infoTips" class="text-amber-950 mt-0.5 leading-relaxed"></div>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end gap-2 pt-1">
+        <button id="infoSyncJsonBtn" type="button" title="Generate or refresh this spool's OrcaSlicer 2.5 JSON in Drive" class="mr-auto px-3.5 py-2 rounded-xl text-xs font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 transition">
+          Create JSON
+        </button>
+        <button id="infoEditBtn" type="button" class="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 transition">
+          Edit Spool
+        </button>
+        <button id="infoDoneBtn" type="button" class="px-4 py-2 rounded-xl text-xs font-semibold text-white bg-slate-900 hover:bg-slate-800 transition">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Google Sheets Sync Modal -->
+  <div id="syncModal" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-2xl shadow-xl border border-slate-200 p-5 space-y-4">
+      <div class="flex items-center justify-between">
+        <h2 class="text-base font-bold text-slate-900">Google Sheets Live Sync</h2>
+        <button id="closeSyncBtn" type="button" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12" /></svg>
+        </button>
+      </div>
+      <p class="text-xs text-slate-600 leading-relaxed">
+        Paste your deployed Google Apps Script Web App URL below to sync changes live with your Google Sheet across your phone, computer, and friends.
+      </p>
+      <form id="syncForm" class="space-y-3">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Apps Script Web App URL</label>
+          <input id="syncUrlInput" type="url" placeholder="https://script.google.com/macros/s/.../exec" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 text-xs focus:outline-none focus:ring-2 focus:ring-slate-900/15" />
+        </div>
+        <div class="grid grid-cols-2 gap-2 pt-1">
+          <button id="syncOrcaBtn" type="button" class="px-3 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-800 text-xs font-semibold transition">Sync Orca JSONs</button>
+          <button id="syncSwatchesBtn" type="button" class="px-3 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-semibold transition">Match Swatch URLs</button>
+        </div>
+        <div class="flex items-center justify-end gap-2 pt-1 border-t border-slate-100">
+          <button id="clearSyncBtn" type="button" class="mr-auto px-3 py-2 rounded-xl text-xs font-semibold text-slate-500 hover:bg-slate-100 transition">Disconnect</button>
+          <button id="cancelSyncBtn" type="button" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition">Cancel</button>
+          <button type="submit" class="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold transition">Save &amp; Sync</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="pointer-events-none fixed bottom-5 left-1/2 -translate-x-1/2 z-50 opacity-0 translate-y-2 transition-all duration-200">
+    <div id="toastMsg" class="px-4 py-2.5 rounded-xl bg-slate-900 text-white text-xs font-medium shadow-lg"></div>
+  </div>
+
+  <script>
+    const DEFAULT_API_URL = 'https://script.google.com/macros/s/AKfycbxh_nygVHZnxTocHxeqAjiTc3w9k3HxRMpF1LVluiU24oFLoEd2Dte8ebL4838Q5haeMA/exec';
+    const SYNC_URL_KEY = 'yanick_filament_sync_url_v1';
+    const STORAGE_KEY = 'yanick_filament_inventory_v9';
+
+    const STARTER_SPOOLS = [
+      { id: 'FIL-001', material: 'PETG', brand: 'Polymaker', color: 'Magenta / Pink', hex: '#db2777', status: 'empty', note: 'Finished 2026-11-15 (Sunlu Magenta on Order #190093)', dateAdded: '2026-11-14', humidity: '<20% RH (Drybox)', moisture: 'moderate', tags: ['Functional', 'Water-Resistant'], drying: '60°C / 6h', temps: 'Nozzle 240–260°C • Bed 60–70°C', tips: 'Cardboard spool (~140g). Hygroscopic—dry if stringing appears. Use textured PEI or glue stick for release.', sample: false },
+      { id: 'FIL-002', material: 'PLA', brand: 'Creality Hyper', color: 'Grey', hex: '#9ca3af', status: 'in_stock', note: 'Sealed bag (Hyper Series)', dateAdded: '2026-11-14', humidity: '<40% RH (Sealed)', moisture: 'low', tags: ['Prototyping', 'Supports'], drying: '45–55°C / 4–6h (if brittle)', temps: 'Nozzle 190–230°C • Bed 25–60°C', tips: 'High-speed Hyper Series (30–600mm/s). Cardboard spool. Keep cooling fan ON.', sample: false },
+      { id: 'FIL-003', material: 'PLA', brand: 'Creality Hyper', color: 'White', hex: '#f8fafc', status: 'in_stock', note: 'Sealed bag (Hyper Series)', dateAdded: '2026-11-14', humidity: '<40% RH (Sealed)', moisture: 'low', tags: ['Prototyping', 'Supports'], drying: '45–55°C / 4–6h (if brittle)', temps: 'Nozzle 190–230°C • Bed 25–60°C', tips: 'High-speed Hyper Series (30–600mm/s). Cardboard spool. Keep cooling fan ON.', sample: false },
+      { id: 'FIL-004', material: 'ABS', brand: 'Overture', color: 'Yellow / Amber', hex: '#d97706', status: 'in_stock', note: 'In drybox', dateAdded: '2026-11-14', humidity: '<30% RH (Drybox)', moisture: 'moderate', tags: ['High Heat', 'Functional'], drying: '75°C / 7h', temps: 'Nozzle 245–265°C • Bed 80–100°C', tips: 'Enclosed chamber required; PVP glue helps. Fan OFF for strength / Low for surface. Ventilate fumes.', sample: false },
+      { id: 'FIL-005', material: 'ABS', brand: 'Overture', color: 'Black', hex: '#18181b', status: 'in_stock', note: 'In drybox', dateAdded: '2026-11-14', humidity: '<30% RH (Drybox)', moisture: 'moderate', tags: ['High Heat', 'Functional'], drying: '75°C / 7h', temps: 'Nozzle 245–265°C • Bed 80–100°C', tips: 'Enclosed chamber required; PVP glue helps. Fan OFF for strength / Low for surface. Ventilate fumes.', sample: false },
+      { id: 'FIL-006', material: 'ASA', brand: 'eSUN (ASA+)', color: 'Gray', hex: '#6b7280', status: 'in_stock', note: 'Sealed bag', dateAdded: '2026-11-14', humidity: '<20% RH (Drybox)', moisture: 'critical', tags: ['Outdoor / UV', 'High Heat', 'Functional'], drying: '70–80°C / 6–8h (required)', temps: 'Nozzle 250–280°C • Bed 90–110°C', tips: 'UV & weather resistant for outdoor parts. High shrinkage: keep enclosure warm & fan 0–30%.', sample: false },
+      { id: 'FIL-007', material: 'PETG-CF', brand: 'Creality Hyper', color: 'Phantom Purple', hex: '#5b21b6', status: 'in_stock', note: 'Sealed foil bag', dateAdded: '2026-11-14', humidity: '<20% RH (Critical)', moisture: 'critical', tags: ['Structural / CF', 'Functional'], drying: '60°C / 8–12h', temps: 'Nozzle 240–260°C • Bed 65–75°C (≤100°C)', tips: 'Hardened steel nozzle required (abrasive CF). Use abrasive-ready slot (T1/T2). Dry before printing.', sample: false },
+      { id: 'FIL-008', material: 'PETG', brand: 'Eryone', color: 'Translucent Blue', hex: '#0284c7', status: 'in_stock', note: 'Standard PETG (F008-P0260323008)', dateAdded: '2026-11-14', humidity: '<20% RH (Drybox)', moisture: 'moderate', tags: ['Functional', 'Water-Resistant'], drying: '60–65°C / 4–8h', temps: 'Nozzle 240–280°C • Bed 75–80°C', tips: 'Cardboard spool (~140g). For clearer translucent prints, print slower with low/no fan.', sample: false },
+      { id: 'FIL-009', material: 'PETG', brand: 'Overture', color: 'Purple', hex: '#7c3aed', status: 'in_stock', note: 'Daily Printing Series (VB08CG0184)', dateAdded: '2026-11-14', humidity: '<20% RH (Drybox)', moisture: 'moderate', tags: ['Functional', 'Water-Resistant'], drying: '60–65°C / 4–6h (max 70°C)', temps: 'Nozzle 230–260°C • Bed 65–70°C', tips: 'Cardboard spool. Do not exceed 70°C drying or wraps may fuse. Use textured PEI or glue stick.', sample: false },
+      { id: 'FIL-010', material: 'PC+', brand: 'Standard (3DPC)', color: 'Black', hex: '#18181b', status: 'ordered', note: 'Order #190093', dateAdded: '2026-11-14', humidity: '<15% RH (Critical)', moisture: 'critical', tags: ['High Heat', 'Structural / CF', 'Functional'], drying: '75–80°C / 8–10h', temps: 'Nozzle 250–270°C • Bed 90–110°C', tips: 'Enclosure required. High strength and heat resistance.', sample: false },
+      { id: 'FIL-011', material: 'PLA', brand: '3DPC Budget', color: 'White', hex: '#f8fafc', status: 'ordered', note: 'Order #190093 (With Spool)', dateAdded: '2026-11-14', humidity: '<40% RH (Sealed)', moisture: 'low', tags: ['Prototyping', 'Supports'], drying: '45–55°C / 4–6h', temps: 'Nozzle 190–220°C • Bed 50–60°C', tips: 'General purpose prototyping. Keep cooling fan ON.', sample: false },
+      { id: 'FIL-012', material: 'PLA', brand: '3DPC Budget', color: 'Coffee', hex: '#6f4e37', status: 'ordered', note: 'Order #190093 (With Spool)', dateAdded: '2026-11-14', humidity: '<40% RH (Sealed)', moisture: 'low', tags: ['Prototyping', 'Supports'], drying: '45–55°C / 4–6h', temps: 'Nozzle 190–220°C • Bed 50–60°C', tips: 'General purpose prototyping. Keep cooling fan ON.', sample: false },
+      { id: 'FIL-013', material: 'PLA', brand: '3DPC Budget', color: 'Yellow', hex: '#eab308', status: 'ordered', note: 'Order #190093 (With Spool)', dateAdded: '2026-11-14', humidity: '<40% RH (Sealed)', moisture: 'low', tags: ['Prototyping', 'Supports'], drying: '45–55°C / 4–6h', temps: 'Nozzle 190–220°C • Bed 50–60°C', tips: 'General purpose prototyping. Keep cooling fan ON.', sample: false },
+      { id: 'FIL-014', material: 'PETG', brand: 'Bambu Lab Basic', color: 'Pine Green', hex: '#166534', status: 'ordered', note: 'Order #190093 (Refill)', dateAdded: '2026-11-14', humidity: '<20% RH (Drybox)', moisture: 'moderate', tags: ['Functional', 'Water-Resistant'], drying: '60–65°C / 6–8h', temps: 'Nozzle 230–260°C • Bed 65–75°C', tips: 'Refill spool (reusable spool required). Dry before printing. Use textured PEI plate.', sample: false },
+      { id: 'FIL-015', material: 'PETG', brand: 'Sunlu', color: 'Magenta', hex: '#db2777', status: 'ordered', note: 'Order #190093 (w/ Reusable Spool)', dateAdded: '2026-11-14', humidity: '<20% RH (Drybox)', moisture: 'moderate', tags: ['Functional', 'Water-Resistant'], drying: '60–65°C / 6–8h', temps: 'Nozzle 230–260°C • Bed 70–80°C', tips: 'Includes reusable master spool. Dry if stringing occurs.', sample: false },
+      { id: 'FIL-016', material: 'HIPS', brand: 'Standard (3DPC)', color: 'White', hex: '#f8fafc', status: 'ordered', note: 'Order #190093', dateAdded: '2026-11-14', humidity: '<20% RH (Critical)', moisture: 'critical', tags: ['Supports'], drying: '75–80°C / 4–6h', temps: 'Nozzle 230–250°C • Bed 90–110°C', tips: 'Dissolvable support material for ABS (using d-Limonene) or standalone lightweight parts. Enclosure recommended.', sample: false },
+      { id: 'FIL-017', material: 'ASA', brand: 'Flashforge', color: 'Burnt Titanium', hex: '#334155', status: 'ordered', note: 'Order CA#6754', dateAdded: '2026-11-14', humidity: '<20% RH (Critical)', moisture: 'critical', tags: ['Outdoor / UV', 'High Heat', 'Functional'], drying: '70–80°C / 6–8h', temps: 'Nozzle 240–260°C • Bed 80–100°C', tips: 'UV & weather resistant for outdoor parts. Enclosure required; keep chamber warm & low fan.', sample: false },
+      { id: 'FIL-018', material: 'ASA', brand: 'Flashforge', color: 'White', hex: '#f8fafc', status: 'ordered', note: 'Order CA#6754', dateAdded: '2026-11-14', humidity: '<20% RH (Critical)', moisture: 'critical', tags: ['Outdoor / UV', 'High Heat', 'Functional'], drying: '70–80°C / 6–8h', temps: 'Nozzle 240–260°C • Bed 80–100°C', tips: 'UV & weather resistant for outdoor parts. Enclosure required; keep chamber warm & low fan.', sample: false },
+      { id: 'FIL-019', material: 'High Speed PETG', brand: 'Overture', color: 'Black', hex: '#18181b', status: 'in_stock', note: '4KG Bundle (Amazon B0FL7P5BMS)', dateAdded: '2026-11-17', humidity: '<20% RH (Drybox)', moisture: 'moderate', tags: ['Functional', 'Water-Resistant'], drying: '60-65°C / 4-6h (max 70°C)', temps: 'Nozzle 230-260°C, Bed 65-70°C', maxFlow: '20', fanSpeed: '20/50', tips: 'High-speed Rapid PETG. Cardboard spool. Do not exceed 70°C drying.', sample: false },
+      { id: 'FIL-020', material: 'High Speed PETG', brand: 'Overture', color: 'White', hex: '#f8fafc', status: 'in_stock', note: '4KG Bundle (Amazon B0FL7P5BMS)', dateAdded: '2026-11-17', humidity: '<20% RH (Drybox)', moisture: 'moderate', tags: ['Functional', 'Water-Resistant'], drying: '60-65°C / 4-6h (max 70°C)', temps: 'Nozzle 230-260°C, Bed 65-70°C', maxFlow: '20', fanSpeed: '20/50', tips: 'High-speed Rapid PETG. Cardboard spool. Do not exceed 70°C drying.', sample: false },
+      { id: 'FIL-021', material: 'High Speed PETG', brand: 'Overture', color: 'Light Gray', hex: '#9ca3af', status: 'in_stock', note: '4KG Bundle (Amazon B0FL7P5BMS)', dateAdded: '2026-11-17', humidity: '<20% RH (Drybox)', moisture: 'moderate', tags: ['Functional', 'Water-Resistant'], drying: '60-65°C / 4-6h (max 70°C)', temps: 'Nozzle 230-260°C, Bed 65-70°C', maxFlow: '20', fanSpeed: '20/50', tips: 'High-speed Rapid PETG. Cardboard spool. Do not exceed 70°C drying.', sample: false },
+      { id: 'FIL-022', material: 'High Speed PETG', brand: 'Overture', color: 'Space Gray', hex: '#4b5563', status: 'in_stock', note: '4KG Bundle (Amazon B0FL7P5BMS)', dateAdded: '2026-11-17', humidity: '<20% RH (Drybox)', moisture: 'moderate', tags: ['Functional', 'Water-Resistant'], drying: '60-65°C / 4-6h (max 70°C)', temps: 'Nozzle 230-260°C, Bed 65-70°C', maxFlow: '20', fanSpeed: '20/50', tips: 'High-speed Rapid PETG. Cardboard spool. Do not exceed 70°C drying.', sample: false },
+      { id: 'FIL-023', material: 'ASA', brand: 'Flashforge', color: 'Black', hex: '#18181b', status: 'in_stock', note: 'Flashforge 2-Pack Deal', dateAdded: '2026-11-17', humidity: '<20% RH (Critical)', moisture: 'critical', tags: ['Outdoor / UV', 'High Heat', 'Functional'], drying: '70-80°C / 6-8h', temps: 'Nozzle 240-260°C, Bed 100-120°C', maxFlow: '14', fanSpeed: '0/20', tips: 'UV & weather resistant. Enclosure required; keep chamber warm & low fan.', sample: false },
+      { id: 'FIL-024', material: 'ASA', brand: 'Flashforge', color: 'Black', hex: '#18181b', status: 'in_stock', note: 'Flashforge 2-Pack Deal', dateAdded: '2026-11-17', humidity: '<20% RH (Critical)', moisture: 'critical', tags: ['Outdoor / UV', 'High Heat', 'Functional'], drying: '70-80°C / 6-8h', temps: 'Nozzle 240-260°C, Bed 100-120°C', maxFlow: '14', fanSpeed: '0/20', tips: 'UV & weather resistant. Enclosure required; keep chamber warm & low fan.', sample: false }
+    ];
+
+    const USE_CASES = ['ALL', 'Outdoor / UV', 'High Heat', 'Structural / CF', 'Functional', 'Supports', 'Prototyping'];
+
+    let state = {
+      spools: [],
+      statusFilter: 'active',
+      materialFilter: 'ALL',
+      useCaseFilter: 'ALL',
+      search: ''
+    };
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          state.spools = JSON.parse(raw);
+          return;
+        }
+      } catch (e) {}
+      state.spools = [...STARTER_SPOOLS];
+    }
+
+    function saveState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state.spools));
+      } catch (e) {}
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      const msgEl = document.getElementById('toastMsg');
+      msgEl.textContent = msg;
+      toast.classList.remove('opacity-0', 'translate-y-2');
+      clearTimeout(window._toastTimer);
+      window._toastTimer = setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-2');
+      }, 2400);
+    }
+
+    function getMoistureIcon(s) {
+      if (s.moisture === 'critical') {
+        return `<span title="Critical moisture sensitivity (${escapeHtml(s.humidity || '<20% RH')}) — dry before print" class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-rose-100 text-rose-600 shrink-0"><svg class="w-3 h-3" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg></span>`;
+      }
+      if (s.moisture === 'moderate') {
+        return `<span title="Keep dry (${escapeHtml(s.humidity || '<25% RH')})" class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-amber-100 text-amber-600 shrink-0"><svg class="w-3 h-3" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg></span>`;
+      }
+      return '';
+    }
+
+    function renderUseCasePills() {
+      const container = document.getElementById('useCaseFilters');
+      container.innerHTML = USE_CASES.map(uc => {
+        const active = state.useCaseFilter === uc;
+        return `<button type="button" data-uc="${uc}" class="uc-pill shrink-0 px-2.5 py-1 rounded-full text-[11px] font-semibold transition ${
+          active
+            ? 'bg-indigo-600 text-white'
+            : 'bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900'
+        }">${uc === 'ALL' ? 'All Jobs' : uc}</button>`;
+      }).join('');
+      container.querySelectorAll('.uc-pill').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.useCaseFilter = btn.dataset.uc;
+          render();
+        });
+      });
+    }
+
+    function getStatusBadge(status) {
+      if (status === 'ordered') {
+        return '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-sky-100 text-sky-800">On Order</span>';
+      }
+      if (status === 'low') {
+        return '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-100 text-amber-800">Running Low</span>';
+      }
+      if (status === 'empty') {
+        return '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-rose-100 text-rose-800">Reorder</span>';
+      }
+      return '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-100 text-emerald-800">In Stock</span>';
+    }
+
+    function renderStats() {
+      const inStock = state.spools.filter(s => s.status === 'in_stock' || s.status === 'low').length;
+      const ordered = state.spools.filter(s => s.status === 'ordered').length;
+      const low = state.spools.filter(s => s.status === 'low').length;
+      const empty = state.spools.filter(s => s.status === 'empty').length;
+      const materials = new Set(state.spools.filter(s => s.status !== 'empty').map(s => s.material)).size;
+
+      document.getElementById('statInStock').textContent = inStock;
+      document.getElementById('statOrdered').textContent = ordered;
+      document.getElementById('statLow').textContent = low;
+      document.getElementById('statEmpty').textContent = empty;
+      document.getElementById('statMaterials').textContent = materials;
+
+      const hasSamples = state.spools.some(s => s.sample);
+      document.getElementById('sampleBanner').classList.toggle('hidden', !hasSamples);
+    }
+
+    function renderMaterialPills() {
+      const container = document.getElementById('materialFilters');
+      const mats = ['ALL', ...Array.from(new Set(state.spools.map(s => s.material))).sort()];
+      container.innerHTML = mats.map(m => {
+        const active = state.materialFilter === m;
+        return `<button type="button" data-mat="${m}" class="mat-pill shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition ${
+          active
+            ? 'bg-slate-900 text-white'
+            : 'bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900'
+        }">${m === 'ALL' ? 'All Materials' : m}</button>`;
+      }).join('');
+
+      container.querySelectorAll('.mat-pill').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.materialFilter = btn.dataset.mat;
+          render();
+        });
+      });
+    }
+
+    function getFilteredSpools() {
+      const q = state.search.trim().toLowerCase();
+      return state.spools.filter(s => {
+        if (state.statusFilter === 'active' && s.status !== 'in_stock' && s.status !== 'low') return false;
+        if (state.statusFilter === 'ordered' && s.status !== 'ordered') return false;
+        if (state.statusFilter === 'low' && s.status !== 'low') return false;
+        if (state.statusFilter === 'empty' && s.status !== 'empty') return false;
+        if (state.materialFilter !== 'ALL' && s.material !== state.materialFilter) return false;
+        if (state.useCaseFilter !== 'ALL') {
+          const tags = s.tags || inferTags(s.material);
+          if (!tags.includes(state.useCaseFilter)) return false;
+        }
+        if (q) {
+          const hay = `${s.brand} ${s.material} ${s.color} ${s.note || ''} ${(s.tags || []).join(' ')}`.toLowerCase();
+          if (!hay.includes(q)) return false;
+        }
+        return true;
+      });
+    }
+
+    function inferTags(mat) {
+      const m = (mat || '').toUpperCase();
+      if (m.includes('ASA')) return ['Outdoor / UV', 'High Heat', 'Functional'];
+      if (m.includes('PC')) return ['High Heat', 'Structural / CF', 'Functional'];
+      if (m.includes('ABS')) return ['High Heat', 'Functional'];
+      if (m.includes('CF')) return ['Structural / CF', 'Functional'];
+      if (m.includes('PETG')) return ['Functional', 'Water-Resistant'];
+      if (m.includes('HIPS') || m.includes('PVA')) return ['Supports'];
+      if (m.includes('PLA')) return ['Prototyping', 'Supports'];
+      return [];
+    }
+
+    function renderMatchBanner() {
+      const banner = document.getElementById('matchBanner');
+      const hasQuery = state.search.trim() !== '' || state.materialFilter !== 'ALL' || state.useCaseFilter !== 'ALL';
+      if (!hasQuery) {
+        banner.classList.add('hidden');
+        return;
+      }
+      const q = state.search.trim().toLowerCase();
+      const matchingAll = state.spools.filter(s => {
+        if (state.materialFilter !== 'ALL' && s.material !== state.materialFilter) return false;
+        if (state.useCaseFilter !== 'ALL' && !(s.tags || inferTags(s.material)).includes(state.useCaseFilter)) return false;
+        if (q) {
+          const hay = `${s.brand} ${s.material} ${s.color} ${s.note || ''} ${(s.tags || []).join(' ')}`.toLowerCase();
+          if (!hay.includes(q)) return false;
+        }
+        return true;
+      });
+      const inStockCount = matchingAll.filter(s => s.status === 'in_stock' || s.status === 'low').length;
+      const orderedCount = matchingAll.filter(s => s.status === 'ordered').length;
+      banner.classList.remove('hidden');
+      if (inStockCount > 0) {
+        banner.className = 'rounded-xl px-3 py-2 text-xs font-medium flex items-center justify-between gap-2 bg-emerald-50 text-emerald-900 border border-emerald-200';
+        banner.innerHTML = `<span><strong>Yes — ${inStockCount} in stock</strong>${orderedCount ? ` (+${orderedCount} on order)` : ''} for this filter.</span>`;
+      } else if (orderedCount > 0) {
+        banner.className = 'rounded-xl px-3 py-2 text-xs font-medium flex items-center justify-between gap-2 bg-sky-50 text-sky-900 border border-sky-200';
+        banner.innerHTML = `<span><strong>Not in stock yet</strong> — ${orderedCount} matching spool(s) on order.</span>`;
+      } else {
+        banner.className = 'rounded-xl px-3 py-2 text-xs font-medium flex items-center justify-between gap-2 bg-rose-50 text-rose-900 border border-rose-200';
+        banner.innerHTML = `<span><strong>No matching filament</strong> in stock or on order.</span>`;
+      }
+    }
+
+    function renderGrid() {
+      renderMatchBanner();
+      const grid = document.getElementById('filamentGrid');
+      const emptyEl = document.getElementById('emptyState');
+      const items = getFilteredSpools();
+
+      if (items.length === 0) {
+        grid.innerHTML = '';
+        emptyEl.classList.remove('hidden');
+        return;
+      }
+
+      emptyEl.classList.add('hidden');
+      grid.innerHTML = items.map(s => {
+        const isLight = isLightColor(s.hex || '#cbd5e1');
+        return `
+          <div class="bg-white rounded-2xl border border-slate-200 p-4 flex flex-col justify-between gap-3 hover:shadow-sm transition">
+            <div class="flex items-start justify-between gap-3">
+              <div class="flex items-center gap-3 min-w-0">
+                <div class="w-11 h-11 rounded-xl shrink-0 border ${isLight ? 'border-slate-300' : 'border-black/10'} flex items-center justify-center shadow-inner" style="background-color: ${s.hex || '#64748b'};">
+                  <div class="w-3.5 h-3.5 rounded-full bg-white/85 border border-black/10"></div>
+                </div>
+                <div class="min-w-0">
+                  <div class="flex items-center gap-1.5 flex-wrap">
+                    <span class="px-2 py-0.5 rounded-md bg-slate-100 text-slate-800 text-[11px] font-bold tracking-wide">${escapeHtml(s.material)}</span>
+                    ${getStatusBadge(s.status)}
+                    ${s.orcaJsonStatus === 'error'
+                      ? `<span title="JSON generation error" class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-rose-50 text-rose-700 border border-rose-200">JSON !</span>`
+                      : (s.orcaJsonUrl ? `<a href="${escapeHtml(s.orcaJsonUrl)}" target="_blank" rel="noopener noreferrer" title="Open ${escapeHtml(s.orcaJson || 'OrcaSlicer JSON')}" class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition">JSON</a>` : '')}
+                    ${getMoistureIcon(s)}
+                  </div>
+                  <h3 class="text-sm font-bold text-slate-900 mt-1 truncate">${escapeHtml(s.color)}</h3>
+                  <p class="text-xs text-slate-500 truncate">${escapeHtml(s.brand)}</p>
+                </div>
+              </div>
+              <div class="flex items-center gap-0.5 shrink-0">
+                <button type="button" data-info="${s.id}" title="Drying &amp; spool info" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition">
+                  <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10" />
+                    <path d="M12 16v-4M12 8h.01" />
+                  </svg>
+                </button>
+                <button type="button" data-edit="${s.id}" title="Edit spool" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition">
+                  <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 20h9" />
+                    <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            ${s.note ? `<p class="text-xs text-slate-500 bg-slate-50 rounded-lg px-2.5 py-1.5 truncate">${escapeHtml(s.note)}</p>` : ''}
+
+            <div class="flex items-center gap-2 pt-1 border-t border-slate-100">
+              ${s.status === 'ordered' ? `
+                <button type="button" data-receive="${s.id}" class="flex-1 py-1.5 px-2.5 rounded-xl bg-sky-50 hover:bg-emerald-50 text-sky-800 hover:text-emerald-800 text-xs font-semibold transition">
+                  Mark Received
+                </button>
+              ` : s.status !== 'empty' ? `
+                <button type="button" data-toggle-low="${s.id}" class="flex-1 py-1.5 px-2.5 rounded-xl text-xs font-semibold transition ${
+                  s.status === 'low'
+                    ? 'bg-amber-100 text-amber-900 hover:bg-amber-200'
+                    : 'bg-slate-100 text-slate-700 hover:bg-amber-50 hover:text-amber-800'
+                }">
+                  ${s.status === 'low' ? 'Unmark Low' : 'Tag Low'}
+                </button>
+                <button type="button" data-finish="${s.id}" class="flex-1 py-1.5 px-2.5 rounded-xl bg-slate-100 hover:bg-rose-50 text-slate-700 hover:text-rose-700 text-xs font-semibold transition">
+                  Mark Finished
+                </button>
+              ` : `
+                <button type="button" data-restock="${s.id}" class="flex-1 py-1.5 px-2.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-semibold transition">
+                  Restocked (Back in Stock)
+                </button>
+              `}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      grid.querySelectorAll('[data-toggle-low]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const item = state.spools.find(x => x.id === btn.dataset.toggleLow);
+          if (!item) return;
+          item.status = item.status === 'low' ? 'in_stock' : 'low';
+          saveState();
+          render();
+          pushToSheet({ action: 'updateStatus', id: item.id, status: item.status });
+          showToast(item.status === 'low' ? `Tagged ${item.color} ${item.material} as low` : `${item.color} ${item.material} marked in stock`);
+        });
+      });
+
+      grid.querySelectorAll('[data-finish]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const item = state.spools.find(x => x.id === btn.dataset.finish);
+          if (!item) return;
+          item.status = 'empty';
+          saveState();
+          render();
+          pushToSheet({ action: 'updateStatus', id: item.id, status: 'empty' });
+          showToast(`${item.color} ${item.material} moved to Reorder list`);
+        });
+      });
+
+      grid.querySelectorAll('[data-receive]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const item = state.spools.find(x => x.id === btn.dataset.receive);
+          if (!item) return;
+          item.status = 'in_stock';
+          saveState();
+          render();
+          pushToSheet({ action: 'updateStatus', id: item.id, status: 'in_stock' });
+          showToast(`${item.color} ${item.material} marked received & in stock`);
+        });
+      });
+
+      grid.querySelectorAll('[data-restock]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const item = state.spools.find(x => x.id === btn.dataset.restock);
+          if (!item) return;
+          item.status = 'in_stock';
+          saveState();
+          render();
+          pushToSheet({ action: 'updateStatus', id: item.id, status: 'in_stock' });
+          showToast(`${item.color} ${item.material} is back in stock`);
+        });
+      });
+
+      grid.querySelectorAll('[data-info]').forEach(btn => {
+        btn.addEventListener('click', () => openInfoModal(btn.dataset.info));
+      });
+
+      grid.querySelectorAll('[data-edit]').forEach(btn => {
+        btn.addEventListener('click', () => openModal(btn.dataset.edit));
+      });
+    }
+
+    function updateGlobalJsonSyncBtn() {
+      const btn = document.getElementById('topJsonSyncBtn');
+      if (!btn) return;
+      const activeSpools = state.spools.filter(s => s.status !== 'empty');
+      const total = activeSpools.length;
+      const errCount = activeSpools.filter(s => s.orcaJsonStatus === 'error').length;
+      const syncedCount = activeSpools.filter(s => s.orcaJsonStatus !== 'error' && (s.orcaJsonStatus === 'synced' || !!s.orcaJsonUrl)).length;
+
+      if (errCount > 0) {
+        btn.className = 'px-2.5 py-2 text-xs font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-xl transition';
+        btn.textContent = `JSON Error (${errCount})`;
+        btn.title = `${errCount} filament(s) failed JSON generation — click to retry`;
+      } else if (total > 0 && syncedCount === total) {
+        btn.className = 'px-2.5 py-2 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-xl transition';
+        btn.textContent = 'JSON Synced ✓';
+        btn.title = `All ${total} active filaments synced to Drive`;
+      } else if (syncedCount > 0) {
+        btn.className = 'px-2.5 py-2 text-xs font-semibold text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-xl transition';
+        btn.textContent = `JSON (${syncedCount}/${total})`;
+        btn.title = `Partial sync: ${syncedCount} of ${total} active filaments synced`;
+      } else {
+        btn.className = 'px-2.5 py-2 text-xs font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-xl transition';
+        btn.textContent = 'JSON Sync';
+        btn.title = 'No OrcaSlicer JSON profiles synced yet';
+      }
+    }
+
+    function render() {
+      document.querySelectorAll('.status-tab').forEach(tab => {
+        const active = tab.dataset.status === state.statusFilter;
+        tab.className = `status-tab px-2.5 py-1.5 rounded-lg text-xs font-semibold transition ${
+          active ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+        }`;
+      });
+      renderStats();
+      renderMaterialPills();
+      renderUseCasePills();
+      renderGrid();
+      updateGlobalJsonSyncBtn();
+    }
+
+    function openModal(id = null) {
+      const modal = document.getElementById('spoolModal');
+      const form = document.getElementById('spoolForm');
+      const delBtn = document.getElementById('deleteSpoolBtn');
+      form.reset();
+
+      if (id) {
+        const item = state.spools.find(s => s.id === id);
+        if (!item) return;
+        document.getElementById('modalTitle').textContent = 'Edit Filament Spool';
+        document.getElementById('editId').value = item.id;
+        document.getElementById('fMaterial').value = item.material;
+        document.getElementById('fBrand').value = item.brand;
+        document.getElementById('fColor').value = item.color;
+        document.getElementById('fHex').value = item.hex || '#1e293b';
+        document.getElementById('fStatus').value = item.status;
+        document.getElementById('fNote').value = item.note || '';
+        document.getElementById('fHumidity').value = item.humidity || '';
+        document.getElementById('fMoisture').value = item.moisture || 'low';
+        document.getElementById('fDrying').value = item.drying || '';
+        document.getElementById('fTemps').value = item.temps || '';
+        document.getElementById('fTips').value = item.tips || '';
+        document.getElementById('fMaxFlow').value = item.maxFlow || '';
+        document.getElementById('fFanSpeed').value = item.fanSpeed || '';
+        document.getElementById('fPrinter').value = item.printer || '';
+        document.getElementById('fSwatchUrl').value = item.swatchUrl || '';
+        delBtn.classList.remove('hidden');
+      } else {
+        document.getElementById('modalTitle').textContent = 'Add Filament Spool';
+        document.getElementById('editId').value = '';
+        document.getElementById('fHex').value = '#2563eb';
+        document.getElementById('fStatus').value = 'in_stock';
+        delBtn.classList.add('hidden');
+      }
+      modal.classList.remove('hidden');
+    }
+
+    function closeModal() {
+      document.getElementById('spoolModal').classList.add('hidden');
+    }
+
+    function isLightColor(hex) {
+      const c = hex.replace('#', '');
+      if (c.length !== 6) return false;
+      const r = parseInt(c.substr(0, 2), 16);
+      const g = parseInt(c.substr(2, 2), 16);
+      const b = parseInt(c.substr(4, 2), 16);
+      return (r * 299 + g * 587 + b * 114) / 1000 > 200;
+    }
+
+    function escapeHtml(str) {
+      return String(str).replace(/[&<>"']/g, m => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      }[m]));
+    }
+
+    // Event Listeners
+    document.getElementById('searchInput').addEventListener('input', e => {
+      state.search = e.target.value;
+      renderGrid();
+    });
+
+    document.querySelectorAll('.status-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        state.statusFilter = tab.dataset.status;
+        render();
+      });
+    });
+
+    document.querySelectorAll('[data-kpi-filter]').forEach(card => {
+      card.addEventListener('click', () => {
+        state.statusFilter = card.dataset.kpiFilter;
+        render();
+      });
+    });
+
+    document.getElementById('resetFiltersBtn').addEventListener('click', () => {
+      state.search = '';
+      state.materialFilter = 'ALL';
+      state.useCaseFilter = 'ALL';
+      state.statusFilter = 'active';
+      document.getElementById('searchInput').value = '';
+      render();
+    });
+
+    document.getElementById('clearSampleBtn').addEventListener('click', () => {
+      state.spools = state.spools.filter(s => !s.sample);
+      saveState();
+      render();
+      showToast('Sample spools cleared');
+    });
+
+    document.getElementById('openAddBtn').addEventListener('click', () => openModal());
+    document.getElementById('closeModalBtn').addEventListener('click', closeModal);
+    document.getElementById('cancelModalBtn').addEventListener('click', closeModal);
+
+    document.getElementById('spoolForm').addEventListener('submit', e => {
+      e.preventDefault();
+      const editId = document.getElementById('editId').value;
+      const payload = {
+        material: document.getElementById('fMaterial').value,
+        brand: document.getElementById('fBrand').value.trim(),
+        color: document.getElementById('fColor').value.trim(),
+        hex: document.getElementById('fHex').value,
+        status: document.getElementById('fStatus').value,
+        note: document.getElementById('fNote').value.trim(),
+        humidity: document.getElementById('fHumidity').value.trim(),
+        moisture: document.getElementById('fMoisture').value,
+        tags: inferTags(document.getElementById('fMaterial').value),
+        drying: document.getElementById('fDrying').value.trim(),
+        temps: document.getElementById('fTemps').value.trim(),
+        tips: document.getElementById('fTips').value.trim(),
+        maxFlow: document.getElementById('fMaxFlow').value.trim(),
+        fanSpeed: document.getElementById('fFanSpeed').value.trim(),
+        printer: document.getElementById('fPrinter').value.trim(),
+        swatchUrl: document.getElementById('fSwatchUrl').value.trim(),
+        swatchStatus: deriveSwatchStatus(document.getElementById('fSwatchUrl').value.trim()),
+        sample: false
+      };
+
+      let savedSpool;
+      if (editId) {
+        const idx = state.spools.findIndex(s => s.id === editId);
+        if (idx !== -1) {
+          state.spools[idx] = { ...state.spools[idx], ...payload };
+          savedSpool = state.spools[idx];
+        }
+        showToast('Spool updated');
+      } else {
+        const today = new Date().toISOString().slice(0, 10);
+        savedSpool = { id: 'FIL-' + String(state.spools.length + 1).padStart(3, '0'), dateAdded: today, ...payload };
+        state.spools.unshift(savedSpool);
+        showToast('Spool added to stock');
+      }
+      if (savedSpool) pushToSheet({ action: 'upsert', spool: savedSpool });
+
+      saveState();
+      closeModal();
+      render();
+    });
+
+    document.getElementById('deleteSpoolBtn').addEventListener('click', () => {
+      const editId = document.getElementById('editId').value;
+      state.spools = state.spools.filter(s => s.id !== editId);
+      saveState();
+      closeModal();
+      render();
+      pushToSheet({ action: 'delete', id: editId });
+      showToast('Spool removed');
+    });
+
+    document.getElementById('copyStockBtn').addEventListener('click', () => {
+      const inStock = state.spools.filter(s => s.status === 'in_stock' || s.status === 'low').map(s => `- ${s.brand} ${s.material} ${s.color} (${s.status === 'low' ? 'LOW' : 'In Stock'})`);
+      const ordered = state.spools.filter(s => s.status === 'ordered').map(s => `- ${s.brand} ${s.material} ${s.color} (On Order)`);
+      const empty = state.spools.filter(s => s.status === 'empty').map(s => `- ${s.brand} ${s.material} ${s.color} (NEEDS REORDER)`);
+      const text = `3D Filament Stock:\n${inStock.join('\n')}` + (ordered.length ? `\n\nOn Order:\n${ordered.join('\n')}` : '') + (empty.length ? `\n\nNeeds Reorder:\n${empty.join('\n')}` : '');
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => showToast('Stock summary copied!')).catch(() => fallbackCopy(text));
+      } else {
+        fallbackCopy(text);
+      }
+    });
+
+    function fallbackCopy(text) {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      ta.remove();
+      showToast('Stock summary copied!');
+    }
+
+    document.getElementById('exportBtn').addEventListener('click', () => {
+      const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(state.spools, null, 2));
+      const a = document.createElement('a');
+      a.setAttribute('href', dataStr);
+      a.setAttribute('download', 'filament_inventory.json');
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      showToast('Exported filament_inventory.json');
+    });
+
+    let activeInfoId = null;
+
+    function openInfoModal(id) {
+      const item = state.spools.find(s => s.id === id);
+      if (!item) return;
+      activeInfoId = id;
+      document.getElementById('infoSwatch').style.backgroundColor = item.hex || '#64748b';
+      document.getElementById('infoMaterial').textContent = item.material;
+      document.getElementById('infoDate').textContent = item.dateAdded ? `Added ${item.dateAdded}` : '';
+      document.getElementById('infoTitle').textContent = item.color;
+      document.getElementById('infoBrand').textContent = item.brand;
+      document.getElementById('infoHumidity').textContent = item.humidity || 'Not specified';
+      document.getElementById('infoDrying').textContent = item.drying || 'Not specified';
+      document.getElementById('infoTemps').textContent = item.temps || 'Not specified';
+      const flowTxt = item.maxFlow ? `${item.maxFlow} mm³/s` : 'Auto';
+      const fanTxt = item.fanSpeed ? `${item.fanSpeed}%` : 'Auto';
+      document.getElementById('infoFlowFan').textContent = `${flowTxt} • Fan ${fanTxt}`;
+      const orcaWrap = document.getElementById('infoOrcaWrap');
+      if (item.orcaJsonUrl) {
+        orcaWrap.innerHTML = `<a href="${escapeHtml(item.orcaJsonUrl)}" target="_blank" rel="noopener noreferrer" class="text-indigo-600 hover:underline font-semibold">${escapeHtml(item.orcaJson || 'Open JSON')}</a>`;
+      } else {
+        orcaWrap.textContent = item.orcaJson || 'Not synced yet';
+      }
+      const swBtn = document.getElementById('infoSwatchBtn');
+      const swStatus = deriveSwatchStatus(item.swatchUrl, item.swatchStatus);
+      if (swStatus === 'matched' && item.swatchUrl) {
+        swBtn.className = 'p-1.5 rounded-lg text-emerald-600 hover:bg-emerald-50 transition';
+        swBtn.title = 'View swatch on 3D Filament Profiles';
+      } else if (swStatus === 'fallback' && item.swatchUrl) {
+        swBtn.className = 'p-1.5 rounded-lg text-teal-600 hover:bg-teal-50 transition';
+        swBtn.title = 'Found on FilamentColors.xyz (not yet on 3D Filament Profiles)';
+      } else {
+        swBtn.className = 'p-1.5 rounded-lg text-amber-600 hover:bg-amber-50 transition';
+        swBtn.title = 'Missing online — Click to add this filament swatch';
+      }
+      const jsonBtn = document.getElementById('infoSyncJsonBtn');
+      if (item.orcaJsonStatus === 'error') {
+        jsonBtn.className = 'mr-auto px-3.5 py-2 rounded-xl text-xs font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition';
+        jsonBtn.textContent = 'JSON Error — Retry';
+      } else if (item.orcaJsonUrl || item.orcaJsonStatus === 'synced') {
+        jsonBtn.className = 'mr-auto px-3.5 py-2 rounded-xl text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition';
+        jsonBtn.textContent = 'JSON Synced ✓';
+      } else {
+        jsonBtn.className = 'mr-auto px-3.5 py-2 rounded-xl text-xs font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 transition';
+        jsonBtn.textContent = 'Create JSON';
+      }
+      document.getElementById('infoTips').textContent = item.tips || 'No special notes logged yet.';
+      document.getElementById('infoModal').classList.remove('hidden');
+    }
+
+    function deriveSwatchStatus(url, explicit) {
+      if (explicit === 'matched' || explicit === 'fallback' || explicit === 'missing') return explicit;
+      if (!url) return 'missing';
+      if (url.indexOf('filamentcolors.xyz') !== -1) return 'fallback';
+      return 'matched';
+    }
+
+    function closeInfoModal() {
+      document.getElementById('infoModal').classList.add('hidden');
+      activeInfoId = null;
+    }
+
+    document.getElementById('closeInfoBtn').addEventListener('click', closeInfoModal);
+    document.getElementById('infoSwatchBtn').addEventListener('click', () => {
+      const item = state.spools.find(s => s.id === activeInfoId);
+      if (!item) return;
+      const swStatus = deriveSwatchStatus(item.swatchUrl, item.swatchStatus);
+      if ((swStatus === 'matched' || swStatus === 'fallback') && item.swatchUrl) {
+        window.open(item.swatchUrl, '_blank', 'noopener,noreferrer');
+      } else {
+        const clip = `${item.brand} ${item.material} ${item.color} (${item.hex || ''})`.trim();
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(clip).catch(() => fallbackCopy(clip));
+        } else {
+          fallbackCopy(clip);
+        }
+        showToast('Copied spool details — opening 3D Filament Profiles');
+        window.open('https://3dfilamentprofiles.com/filaments', '_blank', 'noopener,noreferrer');
+      }
+    });
+    document.getElementById('infoDoneBtn').addEventListener('click', closeInfoModal);
+    document.getElementById('infoSyncJsonBtn').addEventListener('click', async () => {
+      const id = activeInfoId;
+      if (!id) return;
+      const btn = document.getElementById('infoSyncJsonBtn');
+      btn.textContent = 'Syncing...';
+      btn.disabled = true;
+      const ok = await runSheetAction('syncOrcaToDrive', 'Syncing JSON...', { spoolId: id, force: true });
+      btn.disabled = false;
+      if (!ok) {
+        const item = state.spools.find(s => s.id === id);
+        if (item) item.orcaJsonStatus = 'error';
+        updateGlobalJsonSyncBtn();
+      }
+      if (activeInfoId === id) {
+        openInfoModal(id);
+      }
+    });
+    document.getElementById('infoEditBtn').addEventListener('click', () => {
+      const id = activeInfoId;
+      closeInfoModal();
+      if (id) openModal(id);
+    });
+    document.getElementById('infoModal').addEventListener('click', e => {
+      if (e.target.id === 'infoModal') closeInfoModal();
+    });
+
+    function getApiUrl() {
+      try {
+        return localStorage.getItem(SYNC_URL_KEY) || DEFAULT_API_URL || '';
+      } catch (e) {
+        return DEFAULT_API_URL || '';
+      }
+    }
+
+    function updateSyncBadge(mode, text) {
+      const badge = document.getElementById('syncBadge');
+      const refreshBtn = document.getElementById('refreshSyncBtn');
+      const hasUrl = !!getApiUrl();
+      refreshBtn.classList.toggle('hidden', !hasUrl);
+      if (!hasUrl) {
+        badge.className = 'hidden sm:inline-flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-600';
+        badge.textContent = 'Local';
+        return;
+      }
+      if (mode === 'syncing') {
+        badge.className = 'hidden sm:inline-flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-semibold bg-sky-100 text-sky-800';
+        badge.textContent = text || 'Syncing...';
+      } else if (mode === 'error') {
+        badge.className = 'hidden sm:inline-flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-semibold bg-rose-100 text-rose-800';
+        badge.textContent = text || 'Sync Error';
+      } else {
+        badge.className = 'hidden sm:inline-flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-semibold bg-emerald-100 text-emerald-800';
+        badge.textContent = text || 'Synced';
+      }
+    }
+
+    async function fetchFromSheet(silent = false) {
+      const url = getApiUrl();
+      if (!url) {
+        updateSyncBadge('local');
+        return;
+      }
+      updateSyncBadge('syncing', 'Syncing...');
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+        if (data && data.ok && Array.isArray(data.spools)) {
+          state.spools = data.spools.map(sp => ({
+            ...sp,
+            tags: sp.tags && sp.tags.length ? sp.tags : inferTags(sp.material)
+          }));
+          saveState();
+          render();
+          updateSyncBadge('ok', 'Synced');
+          if (!silent) showToast('Synced with Google Sheets');
+        } else {
+          updateSyncBadge('error', 'Sync Error');
+        }
+      } catch (err) {
+        updateSyncBadge('error', 'Offline');
+        if (!silent) showToast('Could not reach Google Sheets (using local cache)');
+      }
+    }
+
+    async function pushToSheet(payload) {
+      const url = getApiUrl();
+      if (!url) return;
+      updateSyncBadge('syncing', 'Saving...');
+      try {
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (data && data.ok) {
+          updateSyncBadge('ok', 'Synced');
+        } else {
+          updateSyncBadge('error', 'Sync Error');
+          showToast('Saved locally, but Sheet sync failed');
+        }
+      } catch (err) {
+        updateSyncBadge('error', 'Offline');
+        showToast('Saved locally (offline)');
+      }
+    }
+
+    // Init
+    document.getElementById('openSyncBtn').addEventListener('click', () => {
+      document.getElementById('syncUrlInput').value = getApiUrl();
+      document.getElementById('syncModal').classList.remove('hidden');
+    });
+    document.getElementById('closeSyncBtn').addEventListener('click', () => document.getElementById('syncModal').classList.add('hidden'));
+    document.getElementById('cancelSyncBtn').addEventListener('click', () => document.getElementById('syncModal').classList.add('hidden'));
+    document.getElementById('clearSyncBtn').addEventListener('click', () => {
+      try { localStorage.removeItem(SYNC_URL_KEY); } catch (e) {}
+      document.getElementById('syncUrlInput').value = '';
+      document.getElementById('syncModal').classList.add('hidden');
+      updateSyncBadge('local');
+      showToast('Disconnected from Google Sheets');
+    });
+    document.getElementById('syncForm').addEventListener('submit', e => {
+      e.preventDefault();
+      const val = document.getElementById('syncUrlInput').value.trim();
+      try { localStorage.setItem(SYNC_URL_KEY, val); } catch (e) {}
+      document.getElementById('syncModal').classList.add('hidden');
+      fetchFromSheet(false);
+    });
+    document.getElementById('refreshSyncBtn').addEventListener('click', () => fetchFromSheet(false));
+    async function runSheetAction(actionName, label, extra = {}) {
+      const url = getApiUrl();
+      if (!url) { showToast('Connect your Apps Script URL first'); return false; }
+      updateSyncBadge('syncing', label);
+      try {
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain' },
+          body: JSON.stringify({ action: actionName, ...extra })
+        });
+        const data = await res.json();
+        if (data && data.ok) {
+          showToast(data.message || 'Done!');
+          await fetchFromSheet(true);
+          return true;
+        } else {
+          updateSyncBadge('error', 'Sync Error');
+          showToast(data.error || data.message || 'Action failed');
+          await fetchFromSheet(true);
+          return false;
+        }
+      } catch (err) {
+        updateSyncBadge('error', 'Offline');
+        showToast('Could not reach Apps Script');
+        return false;
+      }
+    }
+    document.getElementById('syncOrcaBtn').addEventListener('click', () => runSheetAction('syncOrcaToDrive', 'Syncing Orca...', { force: true }));
+    document.getElementById('topJsonSyncBtn').addEventListener('click', () => runSheetAction('syncOrcaToDrive', 'Syncing JSON...', { force: true }));
+    document.getElementById('syncSwatchesBtn').addEventListener('click', () => runSheetAction('syncSwatches', 'Matching...'));
+
+    loadState();
+    render();
+    updateSyncBadge('local');
+    fetchFromSheet(true);
+  </script>
+</body>
+</html>
